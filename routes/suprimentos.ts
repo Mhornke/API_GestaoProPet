@@ -18,29 +18,68 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  const { item, categoriaId, estoque, unidade } = req.body;
+  const {
+    nome,
+    codigo,
+    estoque,
+    marca,
+    estq_min,
+    descricao,
+    unidade,
+    categoriaId,
+  } = req.body;
+console.log(req.body);
 
-  if (!item || !categoriaId || !estoque || !unidade) {
-    res.status(400).json({
-      erro: "Informe item, categoriaId, estoque, e unidade",
+  // Verifica campos obrigatórios
+  if (!nome || !codigo || !categoriaId || !estoque || !unidade || !estq_min) {
+    return res.status(400).json({
+      erro: "Informe nome, codigo, categoriaId, estoque, unidade e quantidade minima",
     });
-    return;
   }
 
   try {
     const suprimento = await prisma.suprimento.create({
       data: {
-        item,
-        categoriaId,
+        nome,
+        codigo,
         estoque,
+        marca: marca || null, // Define como null se não for fornecido
+        estq_min,
+        descricao: descricao || null, // Define como null se não for fornecido
+        categoriaId,
         unidade,
       },
     });
-    res.status(201).json(suprimento);
+
+    return res.status(201).json(suprimento);
   } catch (error) {
+    console.error("Erro ao criar suprimento:", error);
     res.status(400).json(error);
-  }
+    }
+  
 });
+
+router.post('/categoria', async (req, res) => {
+const {nome, descricao} = req.body
+
+if (!nome || !descricao) {
+  return res.status(404).json({
+    error:"informe o nome e descrição da categoria"
+  })
+}
+
+try{
+  const categoria = await prisma.categoria.create({
+    data: {nome, descricao}
+  })
+return res.status(201).json(categoria)
+}catch(error){
+  console.error("Erro ao criar a categoria", error)
+  res.status(400).json(error);
+  }
+
+
+})
 
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
@@ -57,24 +96,37 @@ router.delete("/:id", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
-  const { item, categoriaId, estoque, unidade } = req.body;
+  const {
+    nome,
+    codigo,
+    estoque,
+    marca,
+    estq_min,
+    descricao,
+    unidade,
+    categoriaId,
+  } = req.body;
 
-  if (!item || !categoriaId || !estoque || !unidade) {
-    res.status(400).json({
-      erro: "Informe item, categoriaId, estoque, e unidade",
+  if (!nome || !codigo || !categoriaId || !estoque || !unidade || !estq_min) {
+    return res.status(400).json({
+      erro: "Informe nome, codigo, categoriaId, estoque, unidade e quantidade minima",
     });
-    return;
   }
 
   try {
-    const suprimento = await prisma.suprimento.update({
-      where: { id: Number(id) },
-      data: {
-        item,
-        categoriaId,
-        estoque,
-        unidade,
-      },
+    
+      const suprimento = await prisma.suprimento.update({
+        where: { id: Number(id) },
+        data: {
+          nome,
+          codigo,
+          estoque,
+          marca: marca || null, // Define como null se não for fornecido
+          estq_min,
+          descricao: descricao || null, // Define como null se não for fornecido
+          categoriaId,
+          unidade,
+        },
     });
     res.status(200).json(suprimento);
   } catch (error) {

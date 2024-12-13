@@ -9,109 +9,199 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-// --------------------------------------------------------------
-// COPIA V1!!!!
+model Especie {
+  id      Int      @id @default(autoincrement())
+  nome    String   @db.VarChar(60)
+  animais Animal[]
+
+  @@map("especies")
+}
+
+model Animal {
+  id            Int          @id @default(autoincrement())
+  nome          String       @db.VarChar(60)
+  isAtivo       Boolean      @default(true)
+  peso          Decimal?     @db.Decimal(4, 1)
+  porte         Portes       @default(M)
+  nascimentoApx DateTime?
+  castracao     Castrado     @default(Verificar)
+  castracaoApx  DateTime?
+  status        Status       @default(Verificar)
+  fotos         FotoAnimal[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  especie       Especie?     @relation(fields: [especieId], references: [id])
+  especieId     Int?
+  sexo          Sexos        @default(Nao_Identificado)
+  observacoes   String?
+  // admin         Admin        @relation(fields: [adminId], references: [id])
+  // adminId       Int          @default(1)
+
+  @@map("animais")
+}
+
+enum Castrado {
+  Verificar
+  Nao
+  Pelo_Abrigo
+  Ja_Veio_Castrado
+}
+
+enum Sexos {
+  Macho
+  Femea
+  Verificar
+  Nao_Identificado
+}
+
+enum Status {
+  Disponive_Para_Adocao
+  Adotado
+  Lar_Temporario
+  Verificar
+}
+
+model FotoAnimal {
+  id         Int     @id @default(autoincrement())
+  descricao  String  @db.VarChar(30)
+  codigoFoto String  @db.Text
+  animal     Animal? @relation(fields: [animalId], references: [id])
+  animalId   Int
+
+  @@map("fotoanimais")
+}
+
+model FotoFuncionario {
+  id            Int          @id @default(autoincrement())
+  descricao     String       @db.VarChar(30)
+  codigoFoto    String       @db.LongText
+  funcionario   Funcionario? @relation(fields: [funcionarioId], references: [id])
+  funcionarioId String       @db.VarChar(60)
+
+  @@map("fotouncionarios")
+}
 
 model Funcionario {
-  id                Int    @id @default(autoincrement())
-  nome              String @db.VarChar(50)
-  // cpf             String      @db.VarChar(11)
-  telefone          String @db.VarChar(11)
-  // estado_civil    EstadoCivil @default(Solteiro)
-  // data_nascimento DateTime    @db.Date
-  // email      String    @db.VarChar(30)
-  // foto            Foto        @relation(fields: [fotoId], references: [id])
-  // fotoId          Int
-  // endereco_id     Endereco    @relation(fields: [enderecoId], references: [id])
-  // enderecoId      Int
-  // acessa_sistema  Boolean     @default(false)
-  // senha           String      @db.VarChar(16)
-  // Endereco   Endereco? @relation(fields: [enderecoId], references: [id])
-  // enderecoId Int?
-  // Foto       Foto?     @relation(fields: [fotoId], references: [id])
-  // fotoId     Int?
-  funcaoPrincipal   Funcao @relation(fields: [funcaoPrincipalId], references: [id])
-  funcaoPrincipalId Int
-
-  @@map("funcionarios")
+  id             String            @id @default(uuid()) @db.VarChar(36)
+  nome           String            @db.VarChar(60)
+  cpf            String?           @unique @db.VarChar(11)
+  telefone       String            @default("99999999999") @db.VarChar(11)
+  estadoCivil    EstadoCivil       @default(Nao_Informado)
+  dataNascimento DateTime?
+  email          String?           @db.VarChar(60)
+  acessaSistema  Boolean           @default(false)
+  foto           FotoFuncionario[]
+  endereco       Endereco[]
+  observacoes    String?           @db.VarChar(400)
+  // UserSistema    UserSistema?      @relation(fields: [userSistemaId], references: [id])
+  // userSistemaId  Int?
+  senha          String?           @db.VarChar(60) // senha deve ser varchar(60)
 }
 
-model Funcao {
-  id          Int           @id @default(autoincrement())
-  nome        String        @db.VarChar(20)
-  descricao   String        @db.VarChar(50)
-  Funcionario Funcionario[]
+// model UserSistema {
+//   id          Int           @id @default(autoincrement())
+//   nome        String        @db.VarChar(60)
+//   email       String        @unique @db.VarChar(60)
+//   senha       String        @db.VarChar(60) // senha deve ser varchar(60)
+//   createdAt   DateTime      @default(now())
+//   updatedAt   DateTime      @updatedAt
+//   Funcionario Funcionario[]
 
-  @@map("funcoes")
+//   @@map("usersistemas")
+// }
+
+model FotoInteressado {
+  id            Int         @id @default(autoincrement())
+  descricao     String      @db.VarChar(30)
+  codigoFoto    String      @db.Text
+  Interessado   Interessado @relation(fields: [interessadoId], references: [id])
+  interessadoId Int
+
+  @@map("fotointeressados")
 }
 
-model Adotante {
-  id          Int    @id @default(autoincrement())
-  nome        String @db.VarChar(50)
-  // cpf      String @db.VarChar(11)
-  telefone    String @db.VarChar(11)
-  jaNosAdotou String @db.VarChar(5)
+//Token usado no id para manter logado nas requisicoes, garante mais seguranca quando for armazenado
+//no local storage, pode ser usado fora do id, geralmente é e pode mudar ou experar no tempo estipulado
+//podendo assim ter um campo id sequencial e usando o token em outro item abaixo.
+model Interessado {
+  id              Int               @id @default(autoincrement())
+  nome            String            @db.VarChar(60)
+  cpf             String?           @unique @db.VarChar(11)
+  telefone        String            @default("99999999999") @db.VarChar(11)
+  isAtivo         Boolean           @default(true)
+  estadoCivil     EstadoCivil       @default(Nao_Informado)
+  dataNascimento  DateTime?
+  // senha          String            @db.VarChar(60) // senha deve ser varchar(60)
+  // recoveryCode   String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  fotos           FotoInteressado[]
+  endereco        Endereco[]
+  jaAdotouConosco Boolean           @default(false)
+  observacoes     String?           @db.VarChar(400)
 
-  // estado_civil EstadoCivil @default(Solteiro)
-  // enderecoId   Int
-  // endereco     Endereco    @relation(fields: [enderecoId], references: [id])
-  // fotos        Foto[]
-  // animais      Animal[]
-  // FALTA TERMINAR
-  @@map("adotantes")
+  @@map("interessados")
 }
 
 enum EstadoCivil {
-  Solteiro
+  Nao_Informado
   Casado
-  Uniao_Estavel
+  Solteiro
   Divorciado
   Viuvo
 }
 
 model Endereco {
-  id          Int    @id @default(autoincrement())
-  cep         String @db.VarChar(8)
-  estado      String @db.VarChar(15)
-  cidade      String @db.VarChar(30)
-  bairro      String @db.VarChar(20)
-  endereco    String @db.VarChar(40)
-  numero      String @db.VarChar(10)
-  complemento String @db.VarChar(10)
-  referencia  String @db.VarChar(40)
-  // Funcionario Funcionario[]
-  // Adotante    Adotante[]
+  id            Int          @id @default(autoincrement())
+  cep           String?      @db.VarChar(60)
+  cidade        String       @db.VarChar(60)
+  bairro        String?      @db.VarChar(60)
+  estado        String       @db.VarChar(60)
+  logradouro    String       @db.VarChar(60)
+  numero        String       @db.VarChar(60)
+  complemento   String?      @db.VarChar(60)
+  referencia    String?      @db.VarChar(60)
+  Interessado   Interessado? @relation(fields: [interessadoId], references: [id])
+  interessadoId Int?
+  tipoPessoa    TipoPessoa
+  Funcionario   Funcionario? @relation(fields: [funcionarioId], references: [id])
+  funcionarioId String?      @db.VarChar(36)
 }
 
-model Animal {
-  id       Int      @id @default(autoincrement())
-  nome     String   @db.VarChar(30)
-  // nascimento_aproximado DateTime @db.Date
-  genero   Generos
-  especie  Especies
-  peso     Decimal  @db.Decimal(4, 1)
-  porte    Portes
-  castrado Castrado @default(Nao)
-  foto     String
-  fotos    Foto[]
-
-  @@map("animais")
+enum TipoPessoa {
+  Interessado
+  Funcionario
 }
 
-// status                StatusAnimal @default(Em_Cuidados)
-// data_castracao        DateTime?    @db.Date
-// observacao            String       @db.VarChar(255)
-// historico_adocao      Adotante[]
-// OLHAR O OQ COLOCAR DE DEFAULT NO HISTÓRICO DE ADOÇÃO
+// model Pedido {
+//   id         Int         @id @default(autoincrement())
+//   adotante   Interessado @relation(fields: [adotanteId], references: [id])
+//   adotanteId String      @db.VarChar(36)
+//   animal     Animal      @relation(fields: [animalId], references: [id])
+//   animalId   Int
+//   descricao  String      @db.VarChar(300)
+//   resposta   String?     @db.VarChar(300)
+//   createdAt  DateTime    @default(now())
+//   updatedAt  DateTime    @updatedAt
 
-enum Generos {
-  Macho
-  Femea
-}
+//   @@map("pedidos")
+// }
+
+// model Admin {
+//   id        Int      @id @default(autoincrement())
+//   nome      String   @db.VarChar(60)
+//   email     String   @unique @db.VarChar(60)
+//   senha     String   @db.VarChar(60) // senha deve ser varchar(60)
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//   animais   Animal[]
+
+//   @@map("admins")
+// }
 
 enum Portes {
   PP
@@ -121,52 +211,51 @@ enum Portes {
   GG
 }
 
-enum Especies {
-  Cachorro
-  Gato
+model Caixa {
+  id        Int              @id @default(autoincrement())
+  dia       Int
+  mes       Mes
+  ano       Int
+  tipo      TipoMovimentacao
+  valor     Decimal          @db.Decimal(10, 2)
+  origem    String           @db.VarChar(35)
+  descricao String           @db.VarChar(35)
 }
 
-model Foto {
-  id         Int     @id @default(autoincrement())
-  descricao  String  @db.VarChar(30)
-  codigoFoto String  @db.Text
-  Animal     Animal? @relation(fields: [animalId], references: [id])
-  animalId   Int?
-  // Funcionario Funcionario[]
-  // Adotante    Adotante[]
-
-  @@map("fotos")
+enum TipoMovimentacao {
+  Entrada
+  Saida
 }
 
-//Token usado no id para manter logado nas requisicoes, garante mais seguranca quando for armazenado
-//no local storage, pode ser usado fora do id, geralmente é e pode mudar ou experar no tempo estipulado
-//podendo assim ter um campo id sequencial e usando o token em outro item abaixo.
-
-enum StatusAnimal {
-  Disponivel_para_Adocao
-  Adotado
-  Em_Cuidados
-  Inativo
-}
-
-enum Castrado {
-  Nao
-  Pelo_Abrigo
-  Ja_Veio_Castrado
+enum Mes {
+  Janeiro
+  Fevereiro
+  Marco
+  Abril
+  Junho
+  Julho
+  Agosto
+  Setembro
+  Outubro
+  Novembro
+  Dezembro
 }
 
 // ---------------------------------------
 // SUPRIMENTO
 model Suprimento {
   id          Int       @id @default(autoincrement())
-  item        String    @db.VarChar(30)
+  codigo      Int
+  nome        String    @db.VarChar(50)
+  estoque     Int
+  marca       String?    @db.VarChar(15)
+  estq_min    Float
+  descricao   String?    @db.Text
+  unidade     Unidades  @default(Un)
+
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
   categoriaId Int
-  estoque     Decimal   @default(0) @db.Decimal(8, 3)
-  unidade     Unidades  @default(Un)
-  // marca       String    @db.VarChar(15)
-  // estq_min    Float
-  // descricao   String    @db.Text
+  @@map("suprimentos")
 }
 
 model Categoria {
@@ -182,42 +271,3 @@ enum Unidades {
   g
   Pc
 }
-
-// -----------------------------------
-// CAIXA
-
-model Lancamento {
-  id        Int             @id @default(autoincrement())
-  dia       Int             @db.SmallInt
-  mes       String          @db.VarChar(15)
-  // validar no back, e nao no db
-  ano       Int
-  tipo      TipoLancamentos
-  descricao String          @db.VarChar(40)
-  valor     Decimal         @db.Decimal(10, 2)
-  origem    String          @db.VarChar(15)
-  isEntrada Boolean
-
-  @@map("lancamentos")
-}
-
-enum TipoLancamentos {
-  Entrada
-  Saida
-}
-
-enum Meses {
-  Janeiro
-  Fevereiro
-  Marco
-  Abril
-  Junho
-  Julho
-  Agosto
-  Setembro
-  Outubro
-  Novembro
-  Dezembro
-}
-
-// -----------------------

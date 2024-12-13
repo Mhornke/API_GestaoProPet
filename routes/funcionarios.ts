@@ -1,82 +1,136 @@
 import { PrismaClient } from "@prisma/client";
 import { Router } from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
 const router = Router();
 
 router.get("/", async (req, res) => {
   try {
-    const funcionarios = await prisma.funcionario.findMany({
-      include: {
-        funcaoPrincipal: true,
-      },
-    });
-    res.status(200).json(funcionarios);
+    const admins = await prisma.funcionario.findMany();
+    res.status(200).json(admins);
   } catch (error) {
     res.status(400).json(error);
   }
 });
 
 router.post("/", async (req, res) => {
-  const { nome, telefone, funcaoPrincipalId } = req.body;
+  const {
+    nome,
+    cpf,
+    telefone,
+    estadoCivil,
+    dataNascimento,
+    email,
+    acessaSistema,
+    observacoes,
+    senha,
+  } = req.body;
 
-  if (!nome || !telefone || !funcaoPrincipalId) {
-    res.status(400).json({
-      erro: "Informe nome, telefone, funcaoPrincipalId",
-    });
-    return;
-  }
-
-  try {
-    const funcionario = await prisma.funcionario.create({
+  if (acessaSistema) {
+    if (!nome || email) {
+      res.status(400).json({ erro: "Informe nome, email e senha" });
+      return;
+    }
+    try {
+      const admin = await prisma.funcionario.create({
+        data: {
+          nome,
+          cpf,
+          telefone,
+          estadoCivil,
+          dataNascimento,
+          email,
+          acessaSistema,
+          observacoes,
+          senha,
+        },
+      });
+      res.status(201).json(admin);
+    } catch (error) {
+      res.status(400).json(error);
+    }
+  } else {
+    const admin = await prisma.funcionario.create({
       data: {
         nome,
+        cpf,
         telefone,
-        funcaoPrincipalId,
+        estadoCivil,
+        dataNascimento,
+        acessaSistema,
+        observacoes,
+        senha,
       },
     });
-    res.status(201).json(funcionario);
-  } catch (error) {
-    res.status(400).json(error);
-  }
-});
+    res.status(201).json(admin);
 
-router.delete("/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const funcionario = await prisma.funcionario.delete({
-      where: { id: Number(id) },
-    });
-    res.status(200).json(funcionario);
-  } catch (error) {
-    res.status(400).json(error);
+    if (!nome) {
+      res.status(400).json({ erro: "Informe nome" });
+      return;
+    }
   }
 });
 
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
-  const { nome, telefone, funcaoPrincipalId } = req.body;
+  const {
+    nome,
+    cpf,
+    telefone,
+    estadoCivil,
+    dataNascimento,
+    email,
+    acessaSistema,
+    observacoes,
+    senha,
+  } = req.body;
 
-  if (!nome || !telefone || !funcaoPrincipalId) {
-    res.status(400).json({
-      erro: "Informe nome, telefone, funcaoPrincipalId",
-    });
-    return;
-  }
-
-  try {
-    const funcionario = await prisma.funcionario.update({
-      where: { id: Number(id) },
+  if (acessaSistema) {
+    if (!nome || !email || !senha) {
+      res.status(400).json({ erro: "Informe nome, email e senha" });
+      return;
+    }
+    try {
+      const admin = await prisma.funcionario.update({
+        where: { id: id },
+        data: {
+          nome,
+          estadoCivil,
+          email,
+          acessaSistema,
+          ...(cpf && { cpf }),
+          ...(telefone && { telefone }),
+          ...(dataNascimento && { dataNascimento }),
+          ...(acessaSistema && { acessaSistema }),
+          ...(observacoes && { observacoes }),
+          ...(senha && { senha }),
+        },
+      });
+      res.status(201).json(admin);
+    } catch (error) {
+      res.status(400).json(error);
+    }
+  } else {
+    const admin = await prisma.funcionario.update({
+      where: { id: id },
       data: {
         nome,
-        telefone,
-        funcaoPrincipalId,
+        ...(cpf && { cpf }),
+        ...(telefone && { telefone }),
+        ...(dataNascimento && { dataNascimento }),
+        ...(acessaSistema && { acessaSistema }),
+        ...(observacoes && { observacoes }),
+        ...(senha && { senha }),
       },
     });
-    res.status(200).json(funcionario);
-  } catch (error) {
-    res.status(400).json(error);
+    res.status(201).json(admin);
+
+    if (!nome) {
+      res.status(400).json({ erro: "Informe nome" });
+      return;
+    }
   }
 });
 
