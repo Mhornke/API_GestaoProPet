@@ -1,0 +1,223 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --------------------------------------------------------------
+// COPIA V1!!!!
+
+model Funcionario {
+  id                Int    @id @default(autoincrement())
+  nome              String @db.VarChar(50)
+  // cpf             String      @db.VarChar(11)
+  telefone          String @db.VarChar(11)
+  // estado_civil    EstadoCivil @default(Solteiro)
+  // data_nascimento DateTime    @db.Date
+  // email      String    @db.VarChar(30)
+  // foto            Foto        @relation(fields: [fotoId], references: [id])
+  // fotoId          Int
+  // endereco_id     Endereco    @relation(fields: [enderecoId], references: [id])
+  // enderecoId      Int
+  // acessa_sistema  Boolean     @default(false)
+  // senha           String      @db.VarChar(16)
+  // Endereco   Endereco? @relation(fields: [enderecoId], references: [id])
+  // enderecoId Int?
+  // Foto       Foto?     @relation(fields: [fotoId], references: [id])
+  // fotoId     Int?
+  funcaoPrincipal   Funcao @relation(fields: [funcaoPrincipalId], references: [id])
+  funcaoPrincipalId Int
+
+  @@map("funcionarios")
+}
+
+model Funcao {
+  id          Int           @id @default(autoincrement())
+  nome        String        @db.VarChar(20)
+  descricao   String        @db.VarChar(50)
+  Funcionario Funcionario[]
+
+  @@map("funcoes")
+}
+
+model Adotante {
+  id          Int    @id @default(autoincrement())
+  nome        String @db.VarChar(50)
+  // cpf      String @db.VarChar(11)
+  telefone    String @db.VarChar(11)
+  jaNosAdotou String @db.VarChar(5)
+
+  // estado_civil EstadoCivil @default(Solteiro)
+  // enderecoId   Int
+  // endereco     Endereco    @relation(fields: [enderecoId], references: [id])
+  // fotos        Foto[]
+  // animais      Animal[]
+  // FALTA TERMINAR
+  @@map("adotantes")
+}
+
+enum EstadoCivil {
+  Solteiro
+  Casado
+  Uniao_Estavel
+  Divorciado
+  Viuvo
+}
+
+model Endereco {
+  id          Int    @id @default(autoincrement())
+  cep         String @db.VarChar(8)
+  estado      String @db.VarChar(15)
+  cidade      String @db.VarChar(30)
+  bairro      String @db.VarChar(20)
+  endereco    String @db.VarChar(40)
+  numero      String @db.VarChar(10)
+  complemento String @db.VarChar(10)
+  referencia  String @db.VarChar(40)
+  // Funcionario Funcionario[]
+  // Adotante    Adotante[]
+}
+
+model Animal {
+  id       Int      @id @default(autoincrement())
+  nome     String   @db.VarChar(30)
+  // nascimento_aproximado DateTime @db.Date
+  genero   Generos
+  especie  Especies
+  peso     Decimal  @db.Decimal(4, 1)
+  porte    Portes
+  castrado Castrado @default(Nao)
+  foto     String
+  fotos    Foto[]
+
+  @@map("animais")
+}
+
+// status                StatusAnimal @default(Em_Cuidados)
+// data_castracao        DateTime?    @db.Date
+// observacao            String       @db.VarChar(255)
+// historico_adocao      Adotante[]
+// OLHAR O OQ COLOCAR DE DEFAULT NO HISTÓRICO DE ADOÇÃO
+
+enum Generos {
+  Macho
+  Femea
+}
+
+enum Portes {
+  PP
+  P
+  M
+  G
+  GG
+}
+
+enum Especies {
+  Cachorro
+  Gato
+}
+
+model Foto {
+  id         Int     @id @default(autoincrement())
+  descricao  String  @db.VarChar(30)
+  codigoFoto String  @db.Text
+  Animal     Animal? @relation(fields: [animalId], references: [id])
+  animalId   Int?
+  // Funcionario Funcionario[]
+  // Adotante    Adotante[]
+
+  @@map("fotos")
+}
+
+//Token usado no id para manter logado nas requisicoes, garante mais seguranca quando for armazenado
+//no local storage, pode ser usado fora do id, geralmente é e pode mudar ou experar no tempo estipulado
+//podendo assim ter um campo id sequencial e usando o token em outro item abaixo.
+
+enum StatusAnimal {
+  Disponivel_para_Adocao
+  Adotado
+  Em_Cuidados
+  Inativo
+}
+
+enum Castrado {
+  Nao
+  Pelo_Abrigo
+  Ja_Veio_Castrado
+}
+
+// ---------------------------------------
+// SUPRIMENTO
+model Suprimento {
+  id          Int       @id @default(autoincrement())
+  item        String    @db.VarChar(30)
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  categoriaId Int
+  estoque     Decimal   @default(0) @db.Decimal(8, 3)
+  unidade     Unidades  @default(Un)
+  // marca       String    @db.VarChar(15)
+  // estq_min    Float
+  // descricao   String    @db.Text
+}
+
+model Categoria {
+  id         Int          @id @default(autoincrement())
+  nome       String       @db.VarChar(15)
+  descricao  String       @db.VarChar(50)
+  Suprimento Suprimento[]
+}
+
+enum Unidades {
+  Un
+  Kg
+  g
+  Pc
+}
+
+// -----------------------------------
+// CAIXA
+
+model Lancamento {
+  id        Int             @id @default(autoincrement())
+  dia       Int             @db.SmallInt
+  mes       String          @db.VarChar(15)
+  // validar no back, e nao no db
+  ano       Int
+  tipo      TipoLancamentos
+  descricao String          @db.VarChar(40)
+  valor     Decimal         @db.Decimal(10, 2)
+  origem    String          @db.VarChar(15)
+  isEntrada Boolean
+
+  @@map("lancamentos")
+}
+
+enum TipoLancamentos {
+  Entrada
+  Saida
+}
+
+enum Meses {
+  Janeiro
+  Fevereiro
+  Marco
+  Abril
+  Junho
+  Julho
+  Agosto
+  Setembro
+  Outubro
+  Novembro
+  Dezembro
+}
+
+// -----------------------

@@ -1,2 +1,4 @@
-# API_Gest-oProPet-Publica
-Api do PI para o GestãoProPet
+"# GestaoProPet---BackEnd" 
+
+- .env DATABASE_URL=postgresql://meu_usuario:minha_senha@localhost:5432/meu_banco
+

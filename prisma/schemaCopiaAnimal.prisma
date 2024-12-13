@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --------------------------------------------------------------
+
+model Funcionario {
+  id              Int         @id @default(autoincrement())
+  nome            String      @db.VarChar(50)
+  cpf             String      @db.VarChar(11)
+  telefone        String      @db.VarChar(11)
+  estado_civil    EstadoCivil @default(Solteiro)
+  data_nascimento DateTime    @db.Date
+  email           String      @db.VarChar(30)
+  foto            Foto        @relation(fields: [fotoId], references: [id])
+  fotoId          Int
+  endereco_id     Endereco    @relation(fields: [enderecoId], references: [id])
+  enderecoId      Int
+  acessa_sistema  Boolean     @default(false)
+  senha           String      @db.VarChar(16)
+}
+
+model Adotante {
+  id           Int         @id @default(autoincrement())
+  nome         String      @db.VarChar(50)
+  cpf          String      @db.VarChar(11)
+  telefone     String      @db.VarChar(11)
+  estado_civil EstadoCivil @default(Solteiro)
+  enderecoId   Int
+  endereco     Endereco    @relation(fields: [enderecoId], references: [id])
+  fotos        Foto[]
+  animais      Animal[]
+  // FALTA TERMINAR
+}
+
+enum EstadoCivil {
+  Solteiro
+  Casado
+  Uniao_Estavel
+  Divorciado
+  Viuvo
+}
+
+model Endereco {
+  id          Int           @id @default(autoincrement())
+  cep         String        @db.VarChar(8)
+  estado      String        @db.VarChar(15)
+  cidade      String        @db.VarChar(30)
+  bairro      String        @db.VarChar(20)
+  endereco    String        @db.VarChar(40)
+  numero      String        @db.VarChar(10)
+  complemento String        @db.VarChar(10)
+  referencia  String        @db.VarChar(40)
+  Funcionario Funcionario[]
+  Adotante    Adotante[]
+}
+
+model Animal {
+  id                    Int          @id @default(autoincrement())
+  nome                  String       @db.VarChar(30)
+  peso                  Int
+  status                StatusAnimal @default(Em_Cuidados)
+  nascimento_aproximado DateTime     @db.Date
+  castrado              Castrado     @default(Nao)
+  data_castracao        DateTime?    @db.Date
+  observacao            String       @db.VarChar(255)
+  fotos                 Foto[]
+  historico_adocao      Adotante[]
+  // OLHAR O OQ COLOCAR DE DEFAULT NO HISTÓRICO DE ADOÇÃO
+
+  @@map("animais")
+}
+
+model Foto {
+  id          Int           @id @default(autoincrement())
+  descricao   String        @db.VarChar(30)
+  codigo_foto String        @db.Text
+  Funcionario Funcionario[]
+  Adotante    Adotante[]
+  Animal      Animal?       @relation(fields: [animalId], references: [id])
+  animalId    Int?
+
+  @@map("fotos")
+}
+
+enum StatusAnimal {
+  Disponivel_para_Adocao
+  Adotado
+  Em_Cuidados
+  Inativo
+}
+
+enum Castrado {
+  Nao
+  Pelo_Abrigo
+  Ja_Veio_Castrado
+}
+
+// ---------------------------------------
+// SUPRIMENTO
+model Suprimento {
+  id          Int       @id @default(autoincrement())
+  nome_item   String    @db.VarChar(30)
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  categoriaId Int
+  marca       String    @db.VarChar(15)
+  estoque     Float
+  unidade     Unidade   @default(Un)
+  estq_min    Float
+  descricao   String    @db.Text
+}
+
+model Categoria {
+  id         Int          @id @default(autoincrement())
+  nome       String       @db.VarChar(15)
+  descricao  String       @db.VarChar(50)
+  Suprimento Suprimento[]
+
+  @@map("categorias")
+}
+
+enum Unidade {
+  Un
+  Kg
+  g
+  Pc
+}
+
+// -----------------------------------
+// CAIXA
+
+model Lancamento {
+  id     Int            @id @default(autoincrement())
+  dia    Int            @db.SmallInt
+  mes    String         @db.VarChar(15)
+  // validar no back, e nao no db
+  ano    Int
+  tipo   TipoLancamento
+  origem String         @db.VarChar(15)
+
+  @@map("lancamentos")
+}
+
+enum TipoLancamento {
+  Entrada
+  Saida
+}
+
+// -----------------------
