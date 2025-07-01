@@ -1,4 +1,4 @@
-import { Sexos, Especie, Portes , PrismaClient } from "@prisma/client";
+import { Sexos, Especie, Porte, PrismaClient } from "@prisma/client";
 import { Router } from "express";
 //import { verificaToken } from "../middewares/verificaToken";
 
@@ -21,23 +21,23 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   const {
     nome,
-    isAtivo,
-    peso,
     porte,
-    nascimentoApx,
-    castracao,
-    castracaoApx,
+    idade,
+    descricao,
+    castrado,
     status,
     especieId,
     sexo,
-    observacoes,
     foto,
   } = req.body;
 
-  if (!nome) {
-    res.status(400).json({
-      erro: "Informe nome",
-    });
+  if (!nome || !sexo || !foto || !porte || !especieId) {
+ console.log("dados recebidos para o post",req.body);
+
+
+
+   
+    res.status(400).json({ erro: "Informe nome, sexo, porte e especieId" });
     return;
   }
 
@@ -45,17 +45,14 @@ router.post("/", async (req, res) => {
     const animal = await prisma.animal.create({
       data: {
         nome,
-        isAtivo,
-        peso,
+        idade,
+        descricao,
         porte,
-        nascimentoApx,
-        ...(castracaoApx && { castracaoApx }),
-        castracao,
+        castrado,
         status,
         especieId,
         sexo,
-        castracaoApx,
-        ...(observacoes && { observacoes }),
+
         ...(foto && { foto }),
       },
     });
@@ -203,15 +200,15 @@ router.get("/pesquisa", async (req, res) => {
   try {
     const filters: {
       sexo?: Sexos;
-      porte?: Portes;
+      porte?: Porte;
       especieId?: number;
     } = {};
 
     if (genero && Object.values(Sexos).includes(genero as Sexos)) {
       filters.sexo = genero as Sexos;
     }
-    if (porte && Object.values(Portes).includes(porte as Portes)) {
-      filters.porte = porte as Portes;
+    if (porte && Object.values(Porte).includes(porte as Porte)) {
+      filters.porte = porte as Porte;
     }
 
     if (especie) {

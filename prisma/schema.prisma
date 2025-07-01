@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -22,47 +22,47 @@ model Especie {
 }
 
 model Animal {
-  id            Int          @id @default(autoincrement())
-  nome          String       @db.VarChar(60)
-  isAtivo       Boolean      @default(true)
-  peso          Decimal?     @db.Decimal(4, 1)
-  porte         Portes       @default(M)
-  nascimentoApx DateTime?
-  castracao     Castrado     @default(Verificar)
-  castracaoApx  DateTime?
-  status        Status       @default(Verificar)
-  fotos         FotoAnimal[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  especie       Especie?     @relation(fields: [especieId], references: [id])
-  especieId     Int?
-  sexo          Sexos        @default(Nao_Identificado)
-  observacoes   String?
-  // admin         Admin        @relation(fields: [adminId], references: [id])
-  // adminId       Int          @default(1)
+  id        Int          @id @default(autoincrement())
+  nome      String // Nome do animal, até 60 caracteres
+  idade     Int? // Idade do animal
+  sexo      Sexos // Sexo do animal
+  castrado  Boolean      @default(false)
+  destaque  Boolean      @default(true) // Se é destaque ou não
+  foto      String       @db.Text // URL ou referência da foto principal
+  descricao String? // Descrição opcional do animal
+  createdAt DateTime     @default(now()) // Data de criação
+  updatedAt DateTime     @updatedAt // Data de última atualização
+  porte     Porte        @default(P) // Porte do animal
+  especie   Especie      @relation(fields: [especieId], references: [id])
+  especieId Int
+  status    Status       @default(Disponivel)
+  fotos     FotoAnimal[]
+  pedidos   Pedido[]
 
   @@map("animais")
 }
 
-enum Castrado {
-  Verificar
-  Nao
-  Pelo_Abrigo
-  Ja_Veio_Castrado
+model Pedido {
+  id         Int      @id @default(autoincrement())
+  adotanteId String // Referência ao ID do adotante (UUID)
+  animal     Animal   @relation(fields: [animalId], references: [id])
+  animalId   Int // Referência ao ID do animal
+  descricao  String // Descrição do pedido, até 300 caracteres
+  resposta   String? // Resposta ao pedido (opcional)
+  createdAt  DateTime @default(now()) // Data de criação
+  updatedAt  DateTime @updatedAt // Data de última atualização
+
+  @@map("pedidos")
 }
 
 enum Sexos {
   Macho
   Femea
-  Verificar
-  Nao_Identificado
 }
 
 enum Status {
-  Disponive_Para_Adocao
+  Disponivel
   Adotado
-  Lar_Temporario
-  Verificar
 }
 
 model FotoAnimal {
@@ -78,7 +78,7 @@ model FotoAnimal {
 model FotoFuncionario {
   id            Int          @id @default(autoincrement())
   descricao     String       @db.VarChar(30)
-  codigoFoto    String       @db.LongText
+  codigoFoto    String       @db.Text
   funcionario   Funcionario? @relation(fields: [funcionarioId], references: [id])
   funcionarioId String       @db.VarChar(60)
 
@@ -97,22 +97,9 @@ model Funcionario {
   foto           FotoFuncionario[]
   endereco       Endereco[]
   observacoes    String?           @db.VarChar(400)
-  // UserSistema    UserSistema?      @relation(fields: [userSistemaId], references: [id])
-  // userSistemaId  Int?
-  senha          String?           @db.VarChar(60) // senha deve ser varchar(60)
+
+  senha String? @db.VarChar(60) // senha deve ser varchar(60)
 }
-
-// model UserSistema {
-//   id          Int           @id @default(autoincrement())
-//   nome        String        @db.VarChar(60)
-//   email       String        @unique @db.VarChar(60)
-//   senha       String        @db.VarChar(60) // senha deve ser varchar(60)
-//   createdAt   DateTime      @default(now())
-//   updatedAt   DateTime      @updatedAt
-//   Funcionario Funcionario[]
-
-//   @@map("usersistemas")
-// }
 
 model FotoInteressado {
   id            Int         @id @default(autoincrement())
@@ -203,7 +190,7 @@ enum TipoPessoa {
 //   @@map("admins")
 // }
 
-enum Portes {
+enum Porte {
   PP
   P
   M
@@ -244,17 +231,18 @@ enum Mes {
 // ---------------------------------------
 // SUPRIMENTO
 model Suprimento {
-  id          Int       @id @default(autoincrement())
-  codigo      Int
-  nome        String    @db.VarChar(50)
-  estoque     Int
-  marca       String?    @db.VarChar(15)
-  estq_min    Float
-  descricao   String?    @db.Text
-  unidade     Unidades  @default(Un)
+  id        Int      @id @default(autoincrement())
+  codigo    Int
+  nome      String   @db.VarChar(50)
+  estoque   Int
+  marca     String?  @db.VarChar(15)
+  estq_min  Float
+  descricao String?  @db.Text
+  unidade   Unidades @default(Un)
 
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
   categoriaId Int
+
   @@map("suprimentos")
 }
 
