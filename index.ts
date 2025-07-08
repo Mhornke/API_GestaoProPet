@@ -2,8 +2,8 @@ import express from "express";
 import cors from "cors";
 import especiesRoutes from "./routes/especies";
 import animaisRoutes from "./routes/animais";
-import fotoAnimaisRoutes from "./routes/fotoAnimais";
-import fotoFuncionariosRoutes from "./routes/fotoFuncionarios";
+// import fotoAnimaisRoutes from "./routes/fotoAnimais";
+// import fotoFuncionariosRoutes from "./routes/fotoFuncionarios";
 // import fotoInteressadosRoutes from "./routes/fotoInteressados";
 import interessadosRoutes from "./routes/interessados";
 import dashboardRoutes from "./routes/dashboard";
@@ -22,8 +22,8 @@ app.use(cors());
 
 app.use("/especies", especiesRoutes);
 app.use("/animais", animaisRoutes);
-app.use("/fotoAnimais", fotoAnimaisRoutes);
-app.use("/fotoFuncionarios", fotoFuncionariosRoutes);
+// app.use("/fotoAnimais", fotoAnimaisRoutes);
+// app.use("/fotoFuncionarios", fotoFuncionariosRoutes);
 // app.use("/fotosInteressado", fotoInteressadosRoutes);
 
 app.use("/interessados", interessadosRoutes);

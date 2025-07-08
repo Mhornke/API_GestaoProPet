@@ -34,17 +34,17 @@ prisma.$on("query", (e) => {
 
 const router = Router();
 
-router.get("/:interessadoId", async (req, res) => {
-  const { interessadoId } = req.params;
-  try {
-    const fotos = await prisma.fotoInteressado.findMany({
-      where: { interessadoId: Number(interessadoId) },
-    });
-    res.status(200).json(fotos);
-  } catch (error) {
-    res.status(400).json(error);
-  }
-});
+// router.get("/:interessadoId", async (req, res) => {
+//   const { interessadoId } = req.params;
+//   try {
+//     const fotos = await prisma.fotoInteressado.findMany({
+//       where: { interessadoId: Number(interessadoId) },
+//     });
+//     res.status(200).json(fotos);
+//   } catch (error) {
+//     res.status(400).json(error);
+//   }
+// });
 
 router.post("/", upload.single("codigoFoto"), async (req, res) => {
   const { descricao, interessadoId } = req.body;

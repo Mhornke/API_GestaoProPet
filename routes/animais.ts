@@ -5,7 +5,7 @@ import { Router } from "express";
 const prisma = new PrismaClient();
 const router = Router();
 
-router.get("/", async (req, res) => {
+router.get("/destaque", async (req, res) => {
   try {
     const animais = await prisma.animal.findMany({
       include: {
@@ -248,7 +248,7 @@ router.get("/pesquisa", async (req, res) => {
 
 
 
-router.get("/:id", async (req, res) => {
+router.get("/:id/destaque", async (req, res) => {
   const { id } = req.params;
 
   try {

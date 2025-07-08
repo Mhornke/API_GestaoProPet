@@ -44,7 +44,7 @@ model Animal {
 
 model Pedido {
   id         Int      @id @default(autoincrement())
-  adotanteId String // Referência ao ID do adotante (UUID)
+  userId      String // Referência ao ID do adotante (UUID)
   animal     Animal   @relation(fields: [animalId], references: [id])
   animalId   Int // Referência ao ID do animal
   descricao  String // Descrição do pedido, até 300 caracteres
@@ -54,6 +54,19 @@ model Pedido {
 
   @@map("pedidos")
 }
+// model Interessado {
+//   id        Int      @id @default(autoincrement())
+  
+//   userId    String // Referência ao ID do user (UUID)
+  
+//   animalId  Int // Referência ao ID do animal
+//   descricao String // Descrição do pedido, até 300 caracteres
+//   resposta  String? // Resposta ao pedido (opcional)
+//   createdAt DateTime @default(now()) // Data de criação
+//   updatedAt DateTime @updatedAt // Data de última atualização
+
+//   @@map("interessados")
+// }
 
 enum Sexos {
   Macho
@@ -101,38 +114,40 @@ model Funcionario {
   senha String? @db.VarChar(60) // senha deve ser varchar(60)
 }
 
-model FotoInteressado {
-  id            Int         @id @default(autoincrement())
-  descricao     String      @db.VarChar(30)
-  codigoFoto    String      @db.Text
-  Interessado   Interessado @relation(fields: [interessadoId], references: [id])
-  interessadoId Int
+// model FotoInteressado {
+//   id            Int         @id @default(autoincrement())
+//   descricao     String      @db.VarChar(30)
+//   codigoFoto    String      @db.Text
+//   Interessado   Interessado @relation(fields: [interessadoId], references: [id])
+//   interessadoId Int
 
-  @@map("fotointeressados")
-}
+//   @@map("fotointeressados")
+// }
 
 //Token usado no id para manter logado nas requisicoes, garante mais seguranca quando for armazenado
 //no local storage, pode ser usado fora do id, geralmente é e pode mudar ou experar no tempo estipulado
 //podendo assim ter um campo id sequencial e usando o token em outro item abaixo.
-model Interessado {
-  id              Int               @id @default(autoincrement())
-  nome            String            @db.VarChar(60)
-  cpf             String?           @unique @db.VarChar(11)
-  telefone        String            @default("99999999999") @db.VarChar(11)
-  isAtivo         Boolean           @default(true)
-  estadoCivil     EstadoCivil       @default(Nao_Informado)
-  dataNascimento  DateTime?
-  // senha          String            @db.VarChar(60) // senha deve ser varchar(60)
-  // recoveryCode   String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  fotos           FotoInteressado[]
-  endereco        Endereco[]
-  jaAdotouConosco Boolean           @default(false)
-  observacoes     String?           @db.VarChar(400)
 
-  @@map("interessados")
-}
+
+// model Interessado {
+//   id              Int               @id @default(autoincrement())
+//   nome            String            @db.VarChar(60)
+//   cpf             String?           @unique @db.VarChar(11)
+//   telefone        String            @default("99999999999") @db.VarChar(11)
+//   isAtivo         Boolean           @default(true)
+//   estadoCivil     EstadoCivil       @default(Nao_Informado)
+//   dataNascimento  DateTime?
+//   // senha          String            @db.VarChar(60) // senha deve ser varchar(60)
+//   // recoveryCode   String?
+//   createdAt       DateTime          @default(now())
+//   updatedAt       DateTime          @updatedAt
+//   fotos           FotoInteressado[]
+//   endereco        Endereco[]
+//   jaAdotouConosco Boolean           @default(false)
+//   observacoes     String?           @db.VarChar(400)
+
+//   @@map("interessados")
+// }
 
 enum EstadoCivil {
   Nao_Informado
@@ -152,9 +167,9 @@ model Endereco {
   numero        String       @db.VarChar(60)
   complemento   String?      @db.VarChar(60)
   referencia    String?      @db.VarChar(60)
-  Interessado   Interessado? @relation(fields: [interessadoId], references: [id])
-  interessadoId Int?
-  tipoPessoa    TipoPessoa
+  // Interessado   Interessado? @relation(fields: [interessadoId], references: [id])
+  // interessadoId Int?
+  // tipoPessoa    TipoPessoa
   Funcionario   Funcionario? @relation(fields: [funcionarioId], references: [id])
   funcionarioId String?      @db.VarChar(36)
 }

@@ -1,10 +1,9 @@
-import { PrismaClient } from "@prisma/client";
-import { Router } from "express";
-import { verificaToken } from "../middewares/verificaToken";
-
-const prisma = new PrismaClient();
-const router = Router();
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const client_1 = require("@prisma/client");
+const express_1 = require("express");
+const prisma = new client_1.PrismaClient();
+const router = (0, express_1.Router)();
 // router.get("/", async (req, res) => {
 //   try {
 //     const interessados = await prisma.interessado.findMany();
@@ -13,54 +12,46 @@ const router = Router();
 //     res.status(400).json(error);
 //   }
 // });
-
 router.get("/pedidos", async (req, res) => {
-  try {
-    const { userId } = req.query;
-
-    if (!userId) {
-      return res.status(400).json({ erro: "userId é obrigatório" });
-    }
-
-    const pedidos = await prisma.pedido.findMany({
-      where: {
-        userId: String(userId)
-      },
-      include: {
-        animal: {
-          include: {
-            especie: true,
-          }
+    try {
+        const { userId } = req.query;
+        if (!userId) {
+            return res.status(400).json({ erro: "userId é obrigatório" });
         }
-      }
-    });
-
-    res.status(200).json(pedidos);
-  } catch (error) {
-    res.status(500).json({ erro: "Erro ao buscar pedidos", detalhes: error });
-  }
+        const pedidos = await prisma.pedido.findMany({
+            where: {
+                userId: String(userId)
+            },
+            include: {
+                animal: {
+                    include: {
+                        especie: true,
+                    }
+                }
+            }
+        });
+        res.status(200).json(pedidos);
+    }
+    catch (error) {
+        res.status(500).json({ erro: "Erro ao buscar pedidos", detalhes: error });
+    }
 });
-
 router.post("/", async (req, res) => {
-  const { userId, animalId, descricao  } = req.body
-
-  if (!userId || !animalId || !descricao) {
-    res.status(400).json({ erro: "Informe userId, animalId e descrição!" })
-    return
-  }
-
-
-  try {
-    const pedido = await prisma.pedido.create({
-      data: { userId, animalId, descricao }
-    })
-    res.status(201).json(pedido)
-  } catch (error) {
-    res.status(400).json(error)
-  }
-})
-
-
+    const { userId, animalId, descricao } = req.body;
+    if (!userId || !animalId || !descricao) {
+        res.status(400).json({ erro: "Informe userId, animalId e descrição!" });
+        return;
+    }
+    try {
+        const pedido = await prisma.pedido.create({
+            data: { userId, animalId, descricao }
+        });
+        res.status(201).json(pedido);
+    }
+    catch (error) {
+        res.status(400).json(error);
+    }
+});
 // router.post("/", async (req, res) => {
 //   const {
 //     nome,
@@ -72,14 +63,12 @@ router.post("/", async (req, res) => {
 //     jaAdotouConosco,
 //     observacoes,
 //   } = req.body;
-
 //   if (!nome) {
 //     res.status(400).json({
 //       erro: "Informe nome",
 //     });
 //     return;
 //   }
-
 //   try {
 //     const interessado = await prisma.interessado.create({
 //       data: {
@@ -93,16 +82,13 @@ router.post("/", async (req, res) => {
 //         ...(observacoes && { observacoes }),
 //       },
 //     });
-
 //     res.status(201).json(interessado);
 //   } catch (error) {
 //     res.status(400).json(error);
 //   }
 // });
-
 // router.delete("/:id", async (req, res) => {
 //   const { id } = req.params;
-
 //   try {
 //     const animal = await prisma.animal.delete({
 //       where: { id: Number(id) },
@@ -112,7 +98,6 @@ router.post("/", async (req, res) => {
 //     res.status(400).json(error);
 //   }
 // });
-
 // router.put("/:id", async (req, res) => {
 //   const { id } = req.params;
 //   const {
@@ -129,7 +114,6 @@ router.post("/", async (req, res) => {
 //     observacoes,
 //     foto,
 //   } = req.body;
-
 //   if (
 //     !nome ||
 //     !isAtivo ||
@@ -146,7 +130,6 @@ router.post("/", async (req, res) => {
 //     });
 //     return;
 //   }
-
 //   try {
 //     const animal = await prisma.animal.update({
 //       where: { id: Number(id) },
@@ -171,18 +154,14 @@ router.post("/", async (req, res) => {
 //     res.status(400).json(error);
 //   }
 // });
-
 // router.get("/pesquisa/:termo", async (req, res) => {
 //   const { termo } = req.params;
-
 //   // Tenta converter o termo em número
 //   const termoNumero = Number(termo);
-
 //   // Se a conversao gerou um NaN (Nota a Number)
 //   if (isNaN(termoNumero)) {
 //     try {
 //       let termoCorrigido: string | undefined;
-
 //       // Verifica se o termo é "macho" ou "fêmea" (em qualquer formato)
 //       if (termo.toLowerCase() === "macho") {
 //         termoCorrigido = "Macho";
@@ -194,7 +173,6 @@ router.post("/", async (req, res) => {
 //       } else {
 //         termoCorrigido = undefined;
 //       }
-
 //       const animais = await prisma.animal.findMany({
 //         include: {
 //           especie: true,
@@ -210,7 +188,6 @@ router.post("/", async (req, res) => {
 //           ],
 //         },
 //       });
-
 //       res.status(200).json(animais);
 //     } catch (error) {
 //       res.status(400).json(error);
@@ -231,21 +208,19 @@ router.post("/", async (req, res) => {
 //     }
 //   }
 // });
-
 router.get("/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const animal = await prisma.animal.findUnique({
-      where: { id: Number(id) },
-      include: {
-        especie: true,
-      },
-    });
-    res.status(200).json(animal);
-  } catch (error) {
-    res.status(400).json(error);
-  }
+    const { id } = req.params;
+    try {
+        const animal = await prisma.animal.findUnique({
+            where: { id: Number(id) },
+            include: {
+                especie: true,
+            },
+        });
+        res.status(200).json(animal);
+    }
+    catch (error) {
+        res.status(400).json(error);
+    }
 });
-
-export default router;
+exports.default = router;
